@@ -15,18 +15,43 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 
+interface Category {
+  id: string
+  title: string
+}
+
 interface CategoryComboboxProps {
   selected: string[]
   setSelected: (cats: string[]) => void
 }
 
-const defaultCategories = ["Education", "Tech", "Business", "Lifestyle"]
-
 export function CategoryCombobox({ selected, setSelected }: CategoryComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
+  const [categories, setCategories] = React.useState<Category[]>([])
+  const [loading, setLoading] = React.useState(true)
 
-  const allCategories = [...new Set([...defaultCategories, ...selected])]
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories')
+        const data = await response.json()
+        setCategories(data.docs || [])
+      } catch (error) {
+        console.error('Failed to fetch categories:', error)
+        setCategories([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
+
+  const allCategoryTitles = [
+    ...categories.map(cat => cat.title),
+    ...selected.filter(sel => !categories.find(cat => cat.title === sel))
+  ]
 
   const handleSelect = (category: string) => {
     if (!selected.includes(category)) {
@@ -79,30 +104,32 @@ export function CategoryCombobox({ selected, setSelected }: CategoryComboboxProp
 
             <CommandList>
               <CommandEmpty>
-                No category found.
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-2 w-full flex gap-2 hover:bg-zinc-700"
-                  onClick={handleCreate}
-                >
-                  <Plus size={15} /> Create “{inputValue}”
-                </Button>
+                {loading ? "Loading categories..." : "No category found."}
+                {!loading && inputValue.trim() && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2 w-full flex gap-2 hover:bg-zinc-700"
+                    onClick={handleCreate}
+                  >
+                    <Plus size={15} /> Create "{inputValue}"
+                  </Button>
+                )}
               </CommandEmpty>
 
               <CommandGroup>
-                {allCategories.map((cat) => (
+                {allCategoryTitles.map((catTitle: string) => (
                   <CommandItem
-                    key={cat}
-                    value={cat}
-                    onSelect={() => handleSelect(cat)}
+                    key={catTitle}
+                    value={catTitle}
+                    onSelect={() => handleSelect(catTitle)}
                     className="hover:bg-zinc-700 data-[selected=true]:bg-zinc-700"
                   >
-                    {cat}
+                    {catTitle}
                     <Check
                       className={cn(
                         "ml-auto",
-                        selected.includes(cat) ? "opacity-100" : "opacity-0"
+                        selected.includes(catTitle) ? "opacity-100" : "opacity-0"
                       )}
                     />
                   </CommandItem>

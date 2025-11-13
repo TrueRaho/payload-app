@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -14,28 +14,46 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { CategoryCombobox } from "@/components/category-combobox"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { createPost } from "@/app/actions/create-post"
+import { AlertCircle, CheckCircle } from "lucide-react"
 
-interface CreatePostFormProps {
-  onCreatePost: (postData: { title: string; content: string; categories: string[] }) => void;
-}
-
-export function CreatePostForm({ onCreatePost }: CreatePostFormProps) {
+export function CreatePostForm() {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState("")
 
-  const handleCreate = () => {
-    if (!title.trim() || !content.trim()) return
-
-    onCreatePost({
-      title,
-      content,
-      categories: selectedCategories,
+  const handleSubmit = async (formData: FormData) => {
+    setError("")
+    
+    startTransition(async () => {
+      try {
+        formData.append('categories', JSON.stringify(selectedCategories))
+        await createPost(formData)
+        
+        setTitle("")
+        setContent("")
+        setSelectedCategories([])
+        
+      } catch (err) {
+        if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
+          setTitle("")
+          setContent("")
+          setSelectedCategories([])
+          return
+        }
+        if (err && typeof err === 'object' && 'digest' in err && 
+            typeof err.digest === 'string' && err.digest.includes('NEXT_REDIRECT')) {
+          setTitle("")
+          setContent("")
+          setSelectedCategories([])
+          return
+        }
+        setError(err instanceof Error ? err.message : "Failed to create post")
+      }
     })
-
-    setTitle("")
-    setContent("")
-    setSelectedCategories([])
   }
 
   return (
@@ -47,42 +65,60 @@ export function CreatePostForm({ onCreatePost }: CreatePostFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col gap-6">
-          <div className="grid gap-2">
-            <Label htmlFor="title" className="label">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter post title"
-              className="input"
-            />
+        <form id="create-post-form" action={handleSubmit}>
+          <div className="flex flex-col gap-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className="grid gap-2">
+              <Label htmlFor="title" className="label">Title</Label>
+              <Input
+                id="title"
+                name="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter post title"
+                className="input"
+                disabled={isPending}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="content" className="label">Content</Label>
+              <Textarea
+                id="content"
+                name="content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Enter post content"
+                className="textarea resize-none min-h-40"
+                disabled={isPending}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="categories" className="label">Categories</Label>
+              <CategoryCombobox
+                selected={selectedCategories}
+                setSelected={setSelectedCategories}
+              />
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="content" className="label">Content</Label>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Enter post content"
-              className="textarea resize-none min-h-40"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="categories" className="label">Categories</Label>
-            <CategoryCombobox
-              selected={selectedCategories}
-              setSelected={setSelectedCategories}
-            />
-          </div>
-        </div>
+        </form>
       </CardContent>
       <CardFooter className="flex-col gap-2">
         <Button
-          onClick={handleCreate}
+          type="submit"
+          form="create-post-form"
           className="button-primary w-full"
+          disabled={isPending}
         >
-          Create Post
+          {isPending ? "Creating..." : "Create Post"}
         </Button>
       </CardFooter>
     </Card>

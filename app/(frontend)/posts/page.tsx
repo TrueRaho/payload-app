@@ -1,39 +1,53 @@
-"use client"
-
-import { useState } from "react"
+import { headers as getHeaders } from 'next/headers.js'
+import { getPayload } from 'payload'
+import { redirect } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { PostList, type Post } from "@/components/post-list"
 import { CreatePostForm } from "@/components/create-post-form"
+import config from '@/payload.config'
 
-const mockPosts: Post[] = [
-  {
-    id: "1",
-    title: "adf",
-    content: "",
-    author: "Test user 1",
-    date: "November 12, 2025 at 04:10 PM",
-    categories: ["Education", "Tech"],
-  },
-]
+export default async function PostsPage() {
+  const headers = await getHeaders()
+  const payloadConfig = await config
+  const payload = await getPayload({ config: payloadConfig })
+  const { user } = await payload.auth({ headers })
 
-export default function PostsPage() {
-  const [posts, setPosts] = useState<Post[]>(mockPosts)
+  if (!user) {
+    redirect('/')
+  }
 
-  const handleCreatePost = (postData: { title: string; content: string; categories: string[] }) => {
-    const newPost: Post = {
-      id: Date.now().toString(),
-      ...postData,
-      author: "Test user 1", // Replace with actual user data
-      date: new Date().toLocaleString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }),
-    }
-    setPosts([newPost, ...posts])
+  const { docs: posts } = await payload.find({
+    collection: 'posts' as any,
+    sort: '-createdAt',
+    depth: 2,
+  })
+
+  const formattedPosts: Post[] = posts.map((post: any) => ({
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    author: typeof post.owner === 'object' ? post.owner.email : 'Unknown',
+    date: new Date(post.createdAt).toLocaleString("en-US", {
+      month: "long",
+      day: "numeric", 
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }),
+    categories: post.categories?.map((cat: any) => 
+      typeof cat === 'object' ? cat.title : cat
+    ) || [],
+  }))
+
+  async function handleLogout() {
+    'use server'
+    const { cookies } = await import('next/headers')
+    const cookieStore = await cookies()
+    
+    cookieStore.delete('payload-token')
+    
+    redirect('/')
   }
 
   return (
@@ -42,22 +56,24 @@ export default function PostsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex-1" />
-          <Button variant="secondary" className="button-secondary">
-            Logout
-          </Button>
+          <form action={handleLogout}>
+            <Button variant="secondary" className="button-secondary" type="submit">
+              Logout
+            </Button>
+          </form>
         </div>
 
         {/* Welcome Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-2">Hello, Test user 1!</h1>
+          <h1 className="text-4xl font-bold mb-2">Hello, {user.email}!</h1>
           <p className="text-zinc-400">Create a new post</p>
         </div>
 
         {/* Create Post Form */}
-        <CreatePostForm onCreatePost={handleCreatePost} />
+        <CreatePostForm />
 
         {/* Old Posts Section */}
-        <PostList posts={posts} />
+        <PostList posts={formattedPosts} />
       </div>
     </div>
   )
