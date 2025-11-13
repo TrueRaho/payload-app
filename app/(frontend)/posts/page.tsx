@@ -61,7 +61,6 @@ export default async function PostsPage() {
   return (
     <div className="dark min-h-screen bg-zinc-900 text-white">
       <div className="container mx-auto max-w-3xl px-4 py-8">
-        {/* Header */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex-1" />
           <form action={handleLogout}>
@@ -71,16 +70,13 @@ export default async function PostsPage() {
           </form>
         </div>
 
-        {/* Welcome Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-2">Hello, {user.email}!</h1>
           <p className="text-zinc-400">Create a new post</p>
         </div>
 
-        {/* Create Post Form */}
         <CreatePostForm />
 
-        {/* Old Posts Section */}
         <PostList posts={formattedPosts} />
       </div>
     </div>
