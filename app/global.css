@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@layer base {
+  html {
+    @apply text-[18px] leading-[32px] bg-zinc-900 antialiased h-full;
+  }
+  body {
+    @apply font-sans text-[18px] leading-[32px] text-zinc-50 m-0 h-full;
+  }
+  #app {
+    @apply h-full;
+  }
+  img {
+    @apply max-w-full h-auto block;
+  }
+  h1 {
+    @apply my-10 text-[64px] leading-[70px] font-bold text-center lg:my-6 lg:text-[42px] lg:leading-[42px] md:text-[38px] md:leading-[38px] sm:text-[32px] sm:leading-[32px];
+  }
+  p {
+    @apply my-6;
+  }
+  a {
+    @apply text-current hover:opacity-80 active:opacity-70 focus:outline-none;
+  }
+  svg {
+    @apply align-middle;
+  }
+}
+
+@layer components {
+  .popover-content {
+    @apply bg-zinc-800 border-zinc-700 text-white;
+  }
+  .command {
+    @apply bg-zinc-800 text-white;
+  }
+  .card {
+    @apply bg-zinc-800 border-zinc-700 text-white;
+  }
+  .card-title {
+    @apply text-white;
+  }
+  .card-description {
+    @apply text-zinc-400;
+  }
+  .label {
+    @apply text-sm font-medium mb-2 block;
+  }
+  .input,
+  .textarea,
+  .select-trigger {
+    @apply bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500;
+  }
+  .select-content {
+    @apply bg-zinc-800 border-zinc-700 text-white;
+  }
+  .button-primary {
+    @apply w-full bg-zinc-100 text-zinc-900 hover:bg-white font-medium py-6;
+  }
+  .button-secondary {
+    @apply bg-zinc-100 text-zinc-900 hover:bg-white font-medium;
+  }
+  .badge {
+    @apply bg-zinc-700 text-white hover:bg-zinc-600;
+  }
+  button[data-slot="button"]:hover {
+    @apply brightness-90 transition-all duration-200;
+  }
+  button[data-slot="button"]:active {
+    @apply brightness-75;
+  }
+  .home {
+    @apply flex flex-col justify-between items-center h-screen p-11 max-w-[1024px] mx-auto overflow-hidden sm:p-6;
+  }
+  .home .content {
+    @apply flex flex-col items-center justify-center flex-grow;
+  }
+  .home .links {
+    @apply flex items-center gap-3;
+  }
+  .home .links a {
+    @apply no-underline px-2 py-1 rounded;
+  }
+  .home .links .admin {
+    @apply text-black bg-white border border-black;
+  }
+  .home .links .docs {
+    @apply text-white bg-black border border-white;
+  }
+  .home .footer {
+    @apply flex items-center gap-2 lg:flex-col lg:gap-1.5;
+  }
+  .home .footer p {
+    @apply m-0;
+  }
+  .home .footer .codeLink {
+    @apply no-underline px-2 bg-neutral-700 rounded;
+  }
+}
