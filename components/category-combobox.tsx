@@ -112,7 +112,7 @@ export function CategoryCombobox({ selected, setSelected }: CategoryComboboxProp
                     className="mt-2 w-full flex gap-2 hover:bg-zinc-700"
                     onClick={handleCreate}
                   >
-                    <Plus size={15} /> Create "{inputValue}"
+                    <Plus size={15} /> Create &quot;{inputValue}&quot;
                   </Button>
                 )}
               </CommandEmpty>

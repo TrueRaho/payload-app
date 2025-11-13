@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { CategoryCombobox } from "@/components/category-combobox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { createPost } from "@/app/actions/create-post"
-import { AlertCircle, CheckCircle } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 
 export function CreatePostForm() {
   const [title, setTitle] = useState("")

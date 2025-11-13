@@ -1,11 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -14,18 +12,19 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError("")
+    setLoading(true)
 
     try {
       const response = await fetch("/api/users/login", {
@@ -37,13 +36,12 @@ export function LoginForm() {
       })
 
       if (response.ok) {
-        router.push("/posts")
-        router.refresh()
+        window.location.href = '/posts'
       } else {
         const data = await response.json()
         setError(data.message || "Login failed")
       }
-    } catch (err) {
+    } catch {
       setError("An error occurred. Please try again.")
     } finally {
       setLoading(false)
@@ -64,7 +62,12 @@ export function LoginForm() {
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-6">
             {error && (
-              <div className="text-red-500 text-sm text-center">{error}</div>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {error}
+                </AlertDescription>
+              </Alert>
             )}
             <div className="grid gap-2">
               <Label htmlFor="email" className="label">Email</Label>

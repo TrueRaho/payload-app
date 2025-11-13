@@ -17,28 +17,36 @@ export default async function PostsPage() {
   }
 
   const { docs: posts } = await payload.find({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     collection: 'posts' as any,
     sort: '-createdAt',
     depth: 2,
   })
 
-  const formattedPosts: Post[] = posts.map((post: any) => ({
-    id: post.id,
-    title: post.title,
-    content: post.content,
-    author: typeof post.owner === 'object' ? post.owner.email : 'Unknown',
-    date: new Date(post.createdAt).toLocaleString("en-US", {
-      month: "long",
-      day: "numeric", 
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    }),
-    categories: post.categories?.map((cat: any) => 
-      typeof cat === 'object' ? cat.title : cat
-    ) || [],
-  }))
+  const formattedPosts: Post[] = posts.map((post: unknown) => {
+    const postData = post as Record<string, unknown>
+    return {
+      id: postData.id as string,
+      title: postData.title as string,
+      content: postData.content as string,
+      author: typeof postData.owner === 'object' && postData.owner !== null 
+        ? (postData.owner as Record<string, unknown>).email as string 
+        : 'Unknown',
+      date: new Date(postData.createdAt as string).toLocaleString("en-US", {
+        month: "long",
+        day: "numeric", 
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }),
+      categories: Array.isArray(postData.categories) 
+        ? postData.categories.map((cat: unknown) => 
+            typeof cat === 'object' && cat !== null ? (cat as Record<string, unknown>).title as string : cat as string
+          ) 
+        : [],
+    }
+  })
 
   async function handleLogout() {
     'use server'

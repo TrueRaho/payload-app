@@ -27,6 +27,7 @@ export async function createPost(formData: FormData) {
     const slug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
 
     const existingPost = await payload.find({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       collection: 'posts' as any,
       where: { slug: { equals: slug } },
       limit: 1,
@@ -44,6 +45,7 @@ export async function createPost(formData: FormData) {
         const categorySlug = categoryName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
         
         const existingCategory = await payload.find({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           collection: 'categories' as any,
           where: { slug: { equals: categorySlug } },
           limit: 1,
@@ -55,6 +57,7 @@ export async function createPost(formData: FormData) {
           categoryId = existingCategory.docs[0].id
         } else {
           const newCategory = await payload.create({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             collection: 'categories' as any,
             data: {
               title: categoryName,
@@ -73,6 +76,7 @@ export async function createPost(formData: FormData) {
     }
 
     await payload.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       collection: 'posts' as any,
       data: {
         title,
