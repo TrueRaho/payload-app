@@ -5,23 +5,23 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import config from '@/payload.config'
 
-export async function createPost(formData: FormData) {
+export async function createPost(formData: FormData): Promise<{ success: boolean; error?: string }> {
   const title = formData.get('title') as string
   const content = formData.get('content') as string
   const categories = formData.get('categories') as string
   
-  if (!title?.trim() || !content?.trim()) {
-    throw new Error('Title and content are required')
-  }
-
   try {
+    if (!title?.trim() || !content?.trim()) {
+      return { success: false, error: 'Title and content are required' }
+    }
+
     const headers = await getHeaders()
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
     const { user } = await payload.auth({ headers })
 
     if (!user) {
-      throw new Error('Unauthorized')
+      return { success: false, error: 'Unauthorized' }
     }
 
     const slug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
@@ -34,7 +34,7 @@ export async function createPost(formData: FormData) {
     })
 
     if (existingPost.docs.length > 0) {
-      throw new Error(`Пост с названием "${title}" уже существует. Пожалуйста, выберите другое название.`)
+      return { success: false, error: `The post with the title "${title} " already exists. Please choose a different name.` }
     }
 
     const categoryNames = categories ? JSON.parse(categories) : []
@@ -89,14 +89,7 @@ export async function createPost(formData: FormData) {
 
   } catch (error) {
     console.error('Error creating post:', error)
-    if (error && typeof error === 'object' && 'digest' in error && 
-        typeof error.digest === 'string' && error.digest.includes('NEXT_REDIRECT')) {
-      throw error
-    }
-    if (error instanceof Error) {
-      throw error
-    }
-    throw new Error('Failed to create post')
+    return { success: false, error: 'Failed to create post' }
   }
 
   redirect('/posts')

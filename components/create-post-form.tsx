@@ -29,29 +29,15 @@ export function CreatePostForm() {
     setError("")
     
     startTransition(async () => {
-      try {
-        formData.append('categories', JSON.stringify(selectedCategories))
-        await createPost(formData)
-        
+      formData.append('categories', JSON.stringify(selectedCategories))
+      const result = await createPost(formData)
+      
+      if (result.success) {
         setTitle("")
         setContent("")
         setSelectedCategories([])
-        
-      } catch (err) {
-        if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
-          setTitle("")
-          setContent("")
-          setSelectedCategories([])
-          return
-        }
-        if (err && typeof err === 'object' && 'digest' in err && 
-            typeof err.digest === 'string' && err.digest.includes('NEXT_REDIRECT')) {
-          setTitle("")
-          setContent("")
-          setSelectedCategories([])
-          return
-        }
-        setError(err instanceof Error ? err.message : "Failed to create post")
+      } else {
+        setError(result.error || "Failed to create post")
       }
     })
   }
